@@ -1,0 +1,37 @@
+version: "3.7"
+services:
+  ubuntu:
+    build:
+      context: .
+      dockerfile: ./ubuntu/Dockerfile
+    image: docker-sample_ubuntu
+    container_name: ubuntu
+    hostname: ubuntu
+    networks:
+      - compose-network
+    env_file: .env
+    volumes:
+      - .:/docker
+    tty: true
+    privileged: true
+  centos:
+    build:
+      context: .
+      dockerfile: ./centos/Dockerfile
+    image: docker-sample_centos
+    container_name: centos
+    hostname: centos
+    networks:
+      - compose-network
+    env_file: .env
+    volumes:
+      - .:/docker
+    tty: true
+    privileged: true
+
+networks:
+  default:
+    external:
+      name: bridge
+  compose-network:
+    name: compose-network
