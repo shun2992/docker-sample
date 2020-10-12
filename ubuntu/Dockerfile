@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:20.04 as release
 
 RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt focal main restricted\n\
 deb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates main restricted\n\
@@ -19,3 +19,9 @@ RUN apt-get update && apt-get install -y \
  && rm -rf /var/lib/apt/lists/* \
  && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
+
+FROM release as test
+COPY ubuntu/run_tests.sh /usr/local/bin/
+RUN chmod 755 /usr/local/bin/run_tests.sh
+
+FROM release as production

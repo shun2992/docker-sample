@@ -1,15 +1,15 @@
 .DEFAULT_GOAL := help
-.PHONY: help build clean clean-all dockle trivy
+.PHONY: help build clean clean-all dockle trivy tests
 
 IMAGE_NAMES=docker-sample_ubuntu docker-sample_centos
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-build: ## docker-compose build
+build: ## Build docker-compose
 	docker-compose up --build -d
 
-clean: ## Clean docker image
+clean: ## Clean docker-compose images
 	-@docker-compose down
 	-@docker volume prune -f
 
@@ -21,7 +21,8 @@ clean-all: ## Clean all docker images
 	-@docker network prune -f
 
 dockle: ## Run Dockle
-	$(eval VERSION := $(shell curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
+	$(eval VERSION := $(shell curl --silent \
+	"https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
 	\grep '"tag_name":' | \
 	sed -E 's/.*"v([^"]+)".*/\1/' \
 	))
@@ -35,3 +36,7 @@ trivy: ## Run Trivy
 		docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 			-v $(HOME)/.cache:/root/.cache/ aquasec/trivy $$image || exit 1; \
 	done
+
+tests: build ## Run tests
+	docker-compose -f ubuntu/docker-compose.test.yml up --build
+	docker-compose -f centos/docker-compose.test.yml up --build

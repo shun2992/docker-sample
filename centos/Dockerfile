@@ -1,4 +1,4 @@
-FROM centos:8
+FROM centos:8 as release
 
 RUN yum -y update && yum clean all
 
@@ -17,3 +17,9 @@ rm -f /lib/systemd/system/anaconda.target.wants/*;
 VOLUME [ "/sys/fs/cgroup" ]
 
 CMD ["/usr/sbin/init"]
+
+FROM release as test
+COPY centos/run_tests.sh /usr/local/bin/
+RUN chmod 755 /usr/local/bin/run_tests.sh
+
+FROM release as production
