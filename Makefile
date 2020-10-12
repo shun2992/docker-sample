@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 .PHONY: help build clean clean-all dockle trivy tests
 
-IMAGE_NAMES=docker-sample_ubuntu docker-sample_centos
+IMAGE_NAMES=docker-sample_ubuntu docker-sample_centos docker-sample_alpine
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -40,3 +40,4 @@ trivy: ## Run Trivy
 tests: build ## Run tests
 	docker-compose -f ubuntu/docker-compose.test.yml up --build
 	docker-compose -f centos/docker-compose.test.yml up --build
+	docker-compose -f alpine/docker-compose.test.yml up --build

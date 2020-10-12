@@ -9,7 +9,6 @@ services:
     hostname: ubuntu
     networks:
       - compose-network
-    env_file: .env
     volumes:
       - .:/docker
     tty: true
@@ -23,7 +22,19 @@ services:
     hostname: centos
     networks:
       - compose-network
-    env_file: .env
+    volumes:
+      - .:/docker
+    tty: true
+    privileged: true
+  alpine:
+    build:
+      context: .
+      dockerfile: ./alpine/Dockerfile
+    image: docker-sample_alpine
+    container_name: alpine
+    hostname: alpine
+    networks:
+      - compose-network
     volumes:
       - .:/docker
     tty: true
