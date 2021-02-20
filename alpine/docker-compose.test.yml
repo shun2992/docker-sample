@@ -5,4 +5,16 @@ services:
       context: ..
       dockerfile: ./alpine/Dockerfile
       target: test
+    image: docker-sample-alpine-test
+    container_name: docker-sample-alpine-test
+    hostname: docker-sample-alpine-test
+    networks:
+      - compose-network
     command: /usr/local/bin/run_tests.sh
+
+networks:
+  default:
+    external:
+      name: bridge
+  compose-network:
+    name: compose-network

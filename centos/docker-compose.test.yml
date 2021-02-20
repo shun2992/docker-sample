@@ -5,4 +5,16 @@ services:
       context: ..
       dockerfile: ./centos/Dockerfile
       target: test
+    image: docker-sample-centos-test
+    container_name: docker-sample-centos-test
+    hostname: docker-sample-centos-test
+    networks:
+      - compose-network
     command: /usr/local/bin/run_tests.sh
+
+networks:
+  default:
+    external:
+      name: bridge
+  compose-network:
+    name: compose-network
