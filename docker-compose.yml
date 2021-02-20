@@ -4,9 +4,9 @@ services:
     build:
       context: .
       dockerfile: ./ubuntu/Dockerfile
-    image: docker-sample_ubuntu
-    container_name: ubuntu
-    hostname: ubuntu
+    image: docker-sample-ubuntu
+    container_name: docker-sample-ubuntu
+    hostname: docker-sample-ubuntu
     networks:
       - compose-network
     volumes:
@@ -17,9 +17,9 @@ services:
     build:
       context: .
       dockerfile: ./centos/Dockerfile
-    image: docker-sample_centos
-    container_name: centos
-    hostname: centos
+    image: docker-sample-centos
+    container_name: docker-sample-centos
+    hostname: docker-sample-centos
     networks:
       - compose-network
     volumes:
@@ -30,9 +30,9 @@ services:
     build:
       context: .
       dockerfile: ./alpine/Dockerfile
-    image: docker-sample_alpine
-    container_name: alpine
-    hostname: alpine
+    image: docker-sample-alpine
+    container_name: docker-sample-alpine
+    hostname: docker-sample-alpine
     networks:
       - compose-network
     volumes:

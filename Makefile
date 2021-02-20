@@ -1,7 +1,20 @@
 .DEFAULT_GOAL := help
-.PHONY: help build clean clean-all dockle trivy tests
+.PHONY: help \
+	build \
+	clean \
+	clean-all \
+	dockle \
+	dockle-all \
+	trivy \
+	trivy-all \
+	check \
+	act \
+	build-local \
+	clean-local
 
-IMAGE_NAMES=docker-sample_ubuntu docker-sample_centos docker-sample_alpine
+IMAGE_NAME=docker-sample-alpine
+IMAGE_NAMES=docker-sample-ubuntu docker-sample-centos docker-sample-alpine
+SERVICE_NAMES=ubuntu centos alpine
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -20,7 +33,16 @@ clean-all: ## Clean all docker images
 	-@docker volume prune -f
 	-@docker network prune -f
 
-dockle: ## Run Dockle
+dockle: build ## Run Dockle
+	$(eval VERSION := $(shell curl --silent \
+	"https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
+	\grep '"tag_name":' | \
+	sed -E 's/.*"v([^"]+)".*/\1/' \
+	))
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+		goodwithtech/dockle:v$(VERSION) $(IMAGE_NAME)
+
+dockle-all: build ## Run Dockle all images
 	$(eval VERSION := $(shell curl --silent \
 	"https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
 	\grep '"tag_name":' | \
@@ -31,13 +53,29 @@ dockle: ## Run Dockle
 			goodwithtech/dockle:v$(VERSION) $$image || exit 1; \
 	done
 
-trivy: ## Run Trivy
+trivy: build ## Run Trivy
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+		-v $(HOME)/.cache:/root/.cache/ aquasec/trivy $(IMAGE_NAME)
+
+trivy-all: build ## Run Trivy all images
 	@for image in $(IMAGE_NAMES); do\
 		docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 			-v $(HOME)/.cache:/root/.cache/ aquasec/trivy $$image || exit 1; \
 	done
 
-tests: build ## Run tests
-	docker-compose -f ubuntu/docker-compose.test.yml up --build
-	docker-compose -f centos/docker-compose.test.yml up --build
-	docker-compose -f alpine/docker-compose.test.yml up --build
+check: ## Run check
+	@for service in $(SERVICE_NAMES); do\
+		echo $$service;\
+		docker-compose -f $$service/docker-compose.test.yml up || exit 1; \
+	done
+
+act: build-local ## Run act
+	docker-compose -f local/docker-compose.yml exec \
+		-w /docker act act -P ubuntu-latest=docker-sample-actions
+
+build-local: ## Build docker-compose local
+	docker-compose -f local/docker-compose.yml up --build -d
+
+clean-local: ## Clean docker-compose local images
+	-@docker-compose -f local/docker-compose.yml down
+	-@docker volume prune -f
