@@ -1,0 +1,37 @@
+version: "3.7"
+services:
+  act:
+    build:
+      context: .
+      dockerfile: ./act/Dockerfile
+    image: docker-sample-act
+    container_name: docker-sample-act
+    hostname: docker-sample-act
+    networks:
+      - compose-network
+    volumes:
+      - ..:/docker
+      - /var/run/docker.sock:/var/run/docker.sock
+    tty: true
+    privileged: true
+  actions:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: docker-sample-actions
+    container_name: docker-sample-actions
+    hostname: docker-sample-actions
+    networks:
+      - compose-network
+    volumes:
+      - ..:/docker
+      - /var/run/docker.sock:/var/run/docker.sock
+    tty: true
+    privileged: true
+
+networks:
+  default:
+    external:
+      name: bridge
+  compose-network:
+    name: compose-network
