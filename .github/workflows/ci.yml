@@ -1,27 +1,95 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
-
 on: [push, pull_request]
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "tests"
-  tests:
-    # The type of runner that the job will run on
+  centos:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    env:
+      IMAGE_NAME: docker-sample-centos-test
+      SERVICE_NAME: centos
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - name: docker compose test
+        run: docker-compose -f $SERVICE_NAME/docker-compose.test.yml up
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
+      - name: Install dockle
+        run: |
+          VERSION=$(
+          curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
+          grep '"tag_name":' | \
+          sed -E 's/.*"v([^"]+)".*/\1/' \
+          ) && curl -L -o dockle.tar.gz https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.tar.gz \
+          && tar zxvf dockle.tar.gz
+      - name: Run dockle
+        run: ./dockle --exit-code 1 --exit-level fatal $IMAGE_NAME
 
-      # Runs a single command using the runners shell
-      - name: Tests
-        run: make tests
+  ubuntu:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: docker-sample-ubuntu-test
+      SERVICE_NAME: ubuntu
+    steps:
+      - uses: actions/checkout@v2
+      - name: docker compose test
+        run: docker-compose -f $SERVICE_NAME/docker-compose.test.yml up
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
+      - name: Install dockle
+        run: |
+          VERSION=$(
+          curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
+          grep '"tag_name":' | \
+          sed -E 's/.*"v([^"]+)".*/\1/' \
+          ) && curl -L -o dockle.tar.gz https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.tar.gz \
+          && tar zxvf dockle.tar.gz
+      - name: Run dockle
+        run: ./dockle --exit-code 1 --exit-level fatal $IMAGE_NAME
 
-      - name: Dockle
-        run: make dockle
-
-      - name: Trivy
-        run: make trivy
+  alpine:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: docker-sample-alpine-test
+      SERVICE_NAME: alpine
+    steps:
+      - uses: actions/checkout@v2
+      - name: docker compose test
+        run: docker-compose -f $SERVICE_NAME/docker-compose.test.yml up
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
+      - name: Install dockle
+        run: |
+          VERSION=$(
+          curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
+          grep '"tag_name":' | \
+          sed -E 's/.*"v([^"]+)".*/\1/' \
+          ) && curl -L -o dockle.tar.gz https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.tar.gz \
+          && tar zxvf dockle.tar.gz
+      - name: Run dockle
+        run: ./dockle --exit-code 1 --exit-level fatal $IMAGE_NAME
