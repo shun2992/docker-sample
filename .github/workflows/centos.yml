@@ -1,4 +1,4 @@
-name: CI
+name: centos
 on: [push, pull_request]
 jobs:
   centos:
